@@ -1,8 +1,6 @@
-// mfs.c was used as starting code, aside from whats included in 
-// mfs C file, the additional code added is by Graciela Aguilar
 //The MIT License (MIT)
 //
-// Copyright (c) 2016, 2017 Trevor Bakker 
+// Copyright (c) 2016, 2017 Trevor Bakker
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -36,12 +34,12 @@
                               // so we need to define what delimits our tokens.
                               // In this case, white space
                               // Will separate the tokens on our command line
- 
+
 #define MAX_COMMAND_SIZE 255  // The maximum command-line size
 
 #define MAX_NUM_ARGUMENTS 5   // Mav shell only supports 5 arguments
 
-int main(int argc, char *argv[]){
+int main(){
 
     char * cmd_str = (char*) malloc (MAX_COMMAND_SIZE);
 
@@ -55,7 +53,7 @@ int main(int argc, char *argv[]){
         // This while command will wait here until the user
         // inputs something since fgets returns NULL when there
         // is no input
-    
+
         while (!fgets (cmd_str, MAX_COMMAND_SIZE, stdin));
 
         // Parse input
@@ -72,52 +70,31 @@ int main(int argc, char *argv[]){
         // keep track of its original value so we can deallocate
         // the correct amount at the end
         char *working_root = working_str;
-    
+
         // Tokenize the input stringswith whitespace used as the delimiter
-        while (((arg_ptr = strsep(&working_str, WHITESPACE)) != NULL) && 
+        while (((arg_ptr = strsep(&working_str, WHITESPACE)) != NULL) &&
             (token_count<MAX_NUM_ARGUMENTS)){
 
             token[token_count] = strndup(arg_ptr, MAX_COMMAND_SIZE);
-           
+          
             if(strlen(token[token_count]) == 0){
-                token[token_count] = NULL;
+            token[token_count] = NULL;
             }
 
             token_count++;
         }
-        if(token[0] == NULL){
-            continue;
-        }
-        else if((strcmp("exit", token[0]) == 0) || (strcmp("quit", token[0]) == 0)){
-            printf("exiting correct way\n");  
-            exit(0);
-        }
 
         // Now print the tokenized input as a debug check
         // \TODO Remove this code and replace with your shell functionality
-        pid_t pid = fork();
-        
-        if (pid < 0){
-            printf("Fork failed.\nExiting...\n");
-            exit(1);
+
+        int token_index  = 0;
+        for(token_index = 0; token_index < token_count; token_index++){
+            printf("token[%d] = %s\n", token_index, token[token_index]);
         }
-        else if(pid == 0){
-            execvp(token[0], token);
-            printf( "%s: command not found.\n", token[0]);
-            exit(1);
-        }
-        else if(pid > 0){
-            printf("waiting for child...\n");
-            wait(NULL);
-        }
- 
-       // int token_index  = 0;
-        //for(token_index = 0; token_index < token_count; token_index++){
-         //   printf("token[%d] = %s\n", token_index, token[token_index]);
-       // }
 
         free(working_root);
     }
     return 0;
-     
+
 }
+

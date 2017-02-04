@@ -31,6 +31,7 @@
 #include <errno.h>
 #include <string.h>
 #include <signal.h>
+#include <sys/types.h>
 
 #define WHITESPACE " \t\n"    // We want to split our command line up into tokens
                               // so we need to define what delimits our tokens.
@@ -39,12 +40,20 @@
  
 #define MAX_COMMAND_SIZE 255  // The maximum command-line size
 
-#define MAX_NUM_ARGUMENTS 5   // Mav shell only supports 5 arguments
+#define MAX_NUM_ARGUMENTS 11   // Mav shell only supports 5 arguments
+
+void showpids(int arr[], int size);
+void addpid(int **array,int temp, int *size);
 
 int main(int argc, char *argv[]){
 
     char * cmd_str = (char*) malloc (MAX_COMMAND_SIZE);
-
+    int *pids;
+    int j = 1;
+    pids = (int*)malloc(j *  sizeof(int));    
+    pids[0] = (int) getpid();
+  
+    
     while(1){
 
         // Print out the msh prompt
@@ -88,26 +97,41 @@ int main(int argc, char *argv[]){
         if(token[0] == NULL){
             continue;
         }
+        else if(strcmp("showpid",token[0]) == 0){
+            showpids(pids, j);
+           // printf("this is j = %d\n", j);
+            continue;
+        }
         else if((strcmp("exit", token[0]) == 0) || (strcmp("quit", token[0]) == 0)){
             printf("exiting correct way\n");  
             exit(0);
         }
+     
 
         // Now print the tokenized input as a debug check
         // \TODO Remove this code and replace with your shell functionality
         pid_t pid = fork();
-        
+       
+ 
         if (pid < 0){
-            printf("Fork failed.\nExiting...\n");
+            perror("Fork failed.\nExiting...\n");
             exit(1);
         }
         else if(pid == 0){
+            addpid(&pids, (int)getpid(), &j);
+         
+           // printf("pid # in child  : %d\n", (int) getpid());
             execvp(token[0], token);
             printf( "%s: command not found.\n", token[0]);
             exit(1);
+     
         }
         else if(pid > 0){
+            if(strcmp(token[0], "cd") == 0){
+                chdir(token[1]);
+            }
             printf("waiting for child...\n");
+           // printf("pid # in parent:  %d\n", (int) getpid());
             wait(NULL);
         }
  
@@ -121,3 +145,20 @@ int main(int argc, char *argv[]){
     return 0;
      
 }
+void showpids(int arr[], int size){
+  
+   for (int i = 0; i < size; i++){
+      printf("this is the pid #: %d\n", arr[i]);
+   }
+}
+void addpid(int **array, int temp, int *size){
+     int value = (*size);
+     (*size)++;
+   //  printf("printing add pid size : %d\n", *size);
+     *array = realloc(*array,(sizeof(int) * (*size)));
+     
+     (*array[value]) = temp;
+ //    printf("(in addpid)array [%d] = %d, size of array = %lu\n", value, (*array[value]), (sizeof(*array)/4));
+     
+}
+
